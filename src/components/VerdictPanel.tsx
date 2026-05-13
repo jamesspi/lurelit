@@ -62,7 +62,7 @@ function IocBadge({ type }: { type: string }) {
 
 function SkippedSection({ label, reason }: { label: string; reason: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderRadius: 3, border: '1px dashed var(--border)', opacity: 0.6 }}>
+    <div className="print-report-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderRadius: 3, border: '1px dashed var(--border)', opacity: 0.6 }}>
       <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--border-strong)' }} />
       <span className="label" style={{ color: 'var(--text-faint)', fontSize: 11 }}>{label}</span>
       <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>— {reason}</span>
@@ -143,7 +143,7 @@ function ReportView({ output, enrichmentDetails }: { output: Record<string, unkn
           <Section label="Red Flags" color="var(--pink)">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {flags.map((f, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                <div key={i} className="print-report-row" style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
                   <div style={{ width: 22, height: 22, flexShrink: 0, borderRadius: '50%', background: 'rgba(240,78,152,0.12)', border: '1px solid rgba(240,78,152,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2v3.5M5 7.5h.005" stroke="var(--pink)" strokeWidth="1.5" strokeLinecap="round" /></svg>
                   </div>
@@ -159,15 +159,15 @@ function ReportView({ output, enrichmentDetails }: { output: Record<string, unkn
       {iocs.length > 0 && (
         <div className="animate-slide-up stagger-2">
           <Section label="Indicators of Compromise" color="var(--blue)">
-            <div style={{ border: '1px solid var(--border)', borderRadius: 3, overflow: 'hidden' }}>
-              <div className="label-sm" style={{ display: 'flex', color: 'var(--text-faint)', background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ width: 110, flexShrink: 0, padding: '10px 16px' }}>Type</div>
-                <div style={{ flex: 1, padding: '10px 16px' }}>Value</div>
+            <div className="print-ioc-list" style={{ border: '1px solid var(--border)', borderRadius: 3, overflow: 'hidden' }}>
+              <div className="label-sm print-ioc-header" style={{ display: 'flex', color: 'var(--text-faint)', background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)' }}>
+                <div className="print-ioc-type" style={{ width: 110, flexShrink: 0, padding: '10px 16px' }}>Type</div>
+                <div className="print-ioc-value" style={{ flex: 1, padding: '10px 16px' }}>Value</div>
               </div>
               {iocs.map((ioc, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', borderBottom: i < iocs.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-panel)' }}>
-                  <div style={{ width: 110, flexShrink: 0, padding: '12px 16px' }}><IocBadge type={ioc.type} /></div>
-                  <div className="mono" style={{ flex: 1, padding: '12px 16px', fontSize: 13, color: 'var(--text)', wordBreak: 'break-all' }}>{ioc.value}</div>
+                <div key={i} className="print-ioc-row print-report-row" style={{ display: 'flex', alignItems: 'center', borderBottom: i < iocs.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-panel)' }}>
+                  <div className="print-ioc-type" style={{ width: 110, flexShrink: 0, padding: '12px 16px' }}><IocBadge type={ioc.type} /></div>
+                  <div className="mono print-ioc-value" style={{ flex: 1, padding: '12px 16px', fontSize: 13, color: 'var(--text)', wordBreak: 'break-all' }}>{ioc.value}</div>
                 </div>
               ))}
             </div>
@@ -181,14 +181,14 @@ function ReportView({ output, enrichmentDetails }: { output: Record<string, unkn
           <Section label="IOC Enrichment Results" color="var(--blue)">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {enrichmentDetails.map((detail, i) => (
-                <div key={i} style={{ padding: 16, borderRadius: 3, border: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <div key={i} className="print-enrichment-detail print-report-row" style={{ padding: 16, borderRadius: 3, border: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+                  <div className="print-ioc-heading" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                     <IocBadge type={detail.iocType} />
                     <span className="mono" style={{ fontSize: 13, color: 'var(--text)', wordBreak: 'break-all' }}>{detail.iocValue}</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {detail.sources.map((src, si) => (
-                      <div key={si} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', borderRadius: 3, border: '1px solid var(--border)', background: 'var(--bg-panel)' }}>
+                      <div key={si} className="print-source-row print-report-row" style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 14px', borderRadius: 3, border: '1px solid var(--border)', background: 'var(--bg-panel)' }}>
                         {/* Source name */}
                         <span className="mono" style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-dim)', width: 90, flexShrink: 0, letterSpacing: '0.05em' }}>
                           {src.name}
@@ -322,7 +322,7 @@ function MaliciousSection({ indicators }: { indicators: Indicator[] }) {
             const level = confidenceLevel(ind.source);
             const isLow = level === 'low';
             return (
-              <div key={i} style={{
+              <div key={i} className="print-indicator-card print-report-row" style={{
                 padding: 20, borderRadius: 3, position: 'relative', overflow: 'hidden',
                 border: isLow ? '1px solid var(--border-strong)' : level === 'high' ? '1px solid rgba(240,78,152,0.2)' : '1px solid rgba(254,197,20,0.2)',
                 background: isLow ? 'var(--bg-surface)' : level === 'high' ? 'rgba(240,78,152,0.03)' : 'rgba(254,197,20,0.03)',

@@ -767,6 +767,49 @@ h1, h2, h3 { font-weight: 800; letter-spacing: -0.03em; }
     border: 1px solid var(--border) !important;
   }
 
+  .print-report-row,
+  .print-ioc-row,
+  .print-enrichment-detail,
+  .print-source-row,
+  .print-indicator-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-ioc-list {
+    border: 1px solid var(--border) !important;
+    border-radius: 4px !important;
+    overflow: visible !important;
+  }
+
+  .print-ioc-header,
+  .print-ioc-row {
+    display: grid !important;
+    grid-template-columns: 116px minmax(0, 1fr);
+    align-items: start !important;
+  }
+
+  .print-ioc-type,
+  .print-ioc-value {
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  .print-ioc-value,
+  .print-ioc-heading,
+  .print-source-row,
+  .print-indicator-card {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  .print-enrichment-detail,
+  .print-source-row,
+  .print-indicator-card {
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
   .markdown-code-block,
   .markdown-blockquote,
   .attack-chain-timeline {
