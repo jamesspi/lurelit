@@ -35,7 +35,8 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) {
         if (data.needsSetup) {
-          router.push('/setup');
+          setError('No configuration found. Redirecting to setup…');
+          setTimeout(() => router.push('/setup'), 1500);
           return;
         }
         throw new Error(data.error || 'Login failed');
