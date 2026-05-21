@@ -53,7 +53,8 @@ export async function loadGlobalConfig(): Promise<GlobalConfig | null> {
     const json = decrypt(data);
     const parsed = JSON.parse(json);
     return { huntEnabled: true, ...parsed } as GlobalConfig;
-  } catch {
+  } catch (err) {
+    console.error('[Lurelit] Failed to load config — encrypted data exists but could not be decrypted. If CONFIG_SECRET changed since setup, re-run /setup.', err);
     return null;
   }
 }

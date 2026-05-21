@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { saveGlobalConfig } from '@/lib/config';
+import { saveGlobalConfig, loadGlobalConfig } from '@/lib/config';
 import { CONFIGURED_COOKIE, configuredCookieOptions } from '@/lib/cookies';
 import { getDeploymentPlatform, isServerlessPlatform } from '@/lib/deployment';
 import { describeStorage } from '@/lib/storage';
@@ -42,6 +42,13 @@ export async function POST(request: Request) {
       workflowId,
       huntEnabled: true,
     });
+
+    const verify = await loadGlobalConfig();
+    if (!verify) {
+      return NextResponse.json({
+        error: 'Configuration was saved but could not be read back. Check that the data/ directory is writable and CONFIG_SECRET has not changed.',
+      }, { status: 500 });
+    }
 
     const response = NextResponse.json({ success: true });
     response.cookies.set(CONFIGURED_COOKIE, '1', configuredCookieOptions());
