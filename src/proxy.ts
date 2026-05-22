@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { CONFIGURED_COOKIE, configuredCookieOptions } from '@/lib/cookies';
+import { loadGlobalConfig } from '@/lib/config';
 
 const PUBLIC_PATHS = ['/login', '/setup', '/api/auth/login', '/api/auth/me', '/api/setup'];
 
@@ -13,11 +14,11 @@ function hasEnvConfig(): boolean {
 const CONFIG_FILE_PRIMARY = join(process.cwd(), 'data', 'config_enc');
 const CONFIG_FILE_FALLBACK = '/tmp/lurelit_config_enc';
 
-function hasPersistedConfig(): boolean {
+function hasPersistedConfigOnDisk(): boolean {
   return existsSync(CONFIG_FILE_PRIMARY) || existsSync(CONFIG_FILE_FALLBACK);
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith('/_next') || pathname.startsWith('/favicon') || pathname.includes('.')) {
@@ -42,11 +43,25 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Cookie missing — check disk directly (Node.js runtime in proxy.ts).
-  if (hasPersistedConfig()) {
+  // Cookie missing — check disk directly (self-hosted/Docker).
+  if (hasPersistedConfigOnDisk()) {
     const response = NextResponse.redirect(new URL('/login', request.url));
     response.cookies.set(CONFIGURED_COOKIE, '1', configuredCookieOptions());
     return response;
+  }
+
+  // Disk check failed — try durable storage (Redis/KV on Vercel/serverless).
+  // This only runs when the cookie is missing AND no disk file exists, so
+  // the extra async call is rare and acceptable.
+  try {
+    const config = await loadGlobalConfig();
+    if (config) {
+      const response = NextResponse.redirect(new URL('/login', request.url));
+      response.cookies.set(CONFIGURED_COOKIE, '1', configuredCookieOptions());
+      return response;
+    }
+  } catch {
+    // Storage unavailable — fall through to setup
   }
 
   if (pathname.startsWith('/api/')) {

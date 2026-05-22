@@ -573,7 +573,7 @@ services:
           {/* 3. First-Time Setup */}
           <SectionCard id="setup-wizard" title="First-Time Setup">
             <Paragraph>
-              On first launch, Lurelit auto-detects that no configuration exists and redirects you to a 5-step guided setup wizard at <InlineCode>/setup</InlineCode>. The middleware checks for environment variables (<InlineCode>KIBANA_URL</InlineCode> + <InlineCode>WORKFLOW_ID</InlineCode>) and the <InlineCode>smish_configured</InlineCode> cookie — if neither is present, all routes redirect to setup.
+              On first launch, Lurelit auto-detects that no configuration exists and redirects you to a 5-step guided setup wizard at <InlineCode>/setup</InlineCode>. The proxy checks for environment variables (<InlineCode>KIBANA_URL</InlineCode> + <InlineCode>WORKFLOW_ID</InlineCode>), the <InlineCode>smish_configured</InlineCode> cookie, and durable storage (Redis/KV) — if none contain configuration, all routes redirect to setup.
             </Paragraph>
 
             <SubHead>First-Time Setup (Step by Step)</SubHead>
@@ -619,16 +619,16 @@ services:
 
             <SubHead>Auto-Detection</SubHead>
             <Paragraph>
-              The middleware (<InlineCode>src/middleware.ts</InlineCode>) runs on every request. If environment variables are missing and no <InlineCode>smish_configured</InlineCode> cookie exists, the user is redirected to <InlineCode>/setup</InlineCode>. API routes return <InlineCode>503</InlineCode> with <InlineCode>{`{ needsSetup: true }`}</InlineCode>.
+              The proxy (<InlineCode>src/proxy.ts</InlineCode>) runs on every request. If environment variables are missing, no <InlineCode>smish_configured</InlineCode> cookie exists, and no config is found in storage, the user is redirected to <InlineCode>/setup</InlineCode>. API routes return <InlineCode>503</InlineCode> with <InlineCode>{`{ needsSetup: true }`}</InlineCode>.
             </Paragraph>
 
             <SubHead>Re-Running Setup</SubHead>
             <Paragraph>
-              To re-run the wizard after initial configuration, navigate directly to <InlineCode>/setup</InlineCode> (it&apos;s always accessible as a public path). You can also clear your stored configuration via <InlineCode>DELETE /api/settings</InlineCode> which removes the encrypted config file and the <InlineCode>smish_configured</InlineCode> cookie, forcing the redirect again on next page load.
+              To re-run the wizard after initial configuration, navigate directly to <InlineCode>/setup</InlineCode> (it&apos;s always accessible as a public path). You can also clear your stored configuration via <InlineCode>DELETE /api/settings</InlineCode> which removes the encrypted config and the <InlineCode>smish_configured</InlineCode> cookie, forcing the redirect again on next page load.
             </Paragraph>
 
             <AlertBox type="tip">
-              The setup page is listed as a public path in the middleware, so it can always be accessed without authentication — even if you&apos;re already configured and logged in.
+              The setup page is listed as a public path in the proxy, so it can always be accessed without authentication — even if you&apos;re already configured and logged in.
             </AlertBox>
           </SectionCard>
 
@@ -656,7 +656,7 @@ WORKFLOW_ID=your-workflow-id-from-kibana`}</CodeBlock>
 
             <SubHead>Config Storage</SubHead>
             <Paragraph>
-              Configuration is encrypted (AES-256-GCM) and saved to <InlineCode>data/.smish-config.enc</InlineCode>. In Docker, the <InlineCode>lurelit-data</InlineCode> volume persists this directory at <InlineCode>/app/data</InlineCode>, so config survives container rebuilds. Do not delete the <InlineCode>data/</InlineCode> directory unless you intend to reset all configuration.
+              Configuration is encrypted (AES-256-GCM) and saved to <InlineCode>data/config.enc</InlineCode> (or Redis when durable storage is configured). In Docker, the <InlineCode>lurelit-data</InlineCode> volume persists this directory at <InlineCode>/app/data</InlineCode>, so config survives container rebuilds. On Vercel, an Upstash Redis or Vercel KV integration is required for persistent storage. Do not delete the <InlineCode>data/</InlineCode> directory or Redis keys unless you intend to reset all configuration.
             </Paragraph>
             <Paragraph>
               If the primary <InlineCode>data/</InlineCode> path isn&apos;t writable (e.g. permission issues in certain environments), the app gracefully falls back to <InlineCode>/tmp</InlineCode> for temporary storage.
@@ -1204,7 +1204,7 @@ POST /api/setup/validate-workflow — Verify workflow ID exists`}</CodeBlock>
 
             <SubHead>Authentication Flow</SubHead>
             <Paragraph>
-              Login validates credentials against the Kibana API. On success, an encrypted session cookie is set (AES-256-GCM, scrypt-derived key from <InlineCode>CONFIG_SECRET</InlineCode>). The middleware checks this cookie on every request and redirects unauthenticated users to <InlineCode>/login</InlineCode>. Sessions expire after 24 hours.
+              Login validates credentials against the Kibana API. On success, an encrypted session cookie is set (AES-256-GCM, scrypt-derived key from <InlineCode>CONFIG_SECRET</InlineCode>). The proxy checks this cookie on every request and redirects unauthenticated users to <InlineCode>/login</InlineCode>. Sessions expire after 24 hours.
             </Paragraph>
 
             <SubHead>Data Flow</SubHead>
