@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadGlobalConfig, saveGlobalConfig, clearGlobalConfig } from '@/lib/config';
 import { getSession } from '@/lib/session';
+import { CONFIGURED_COOKIE } from '@/lib/cookies';
 
 export async function GET() {
   const session = await getSession();
@@ -31,5 +32,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE() {
   await clearGlobalConfig();
-  return NextResponse.json({ success: true });
+  const response = NextResponse.json({ success: true });
+  response.cookies.set(CONFIGURED_COOKIE, '', { maxAge: 0, path: '/' });
+  return response;
 }
