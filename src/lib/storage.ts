@@ -89,7 +89,10 @@ class RedisStorage implements StorageProvider {
   async get(key: string): Promise<string | null> {
     const client = await this.getClient();
     const value = await client.get<string>(`lurelit:${key}`);
-    return value ?? null;
+    if (value === null || value === undefined) return null;
+    // @upstash/redis auto-deserializes JSON values into objects, but
+    // StorageProvider.get must always return a raw string.
+    return typeof value === 'string' ? value : JSON.stringify(value);
   }
 
   async set(key: string, value: string): Promise<void> {
